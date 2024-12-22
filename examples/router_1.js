@@ -15,4 +15,6 @@ app.post("/echo", async (req, res) => {
     return res.text(body);
 });
 
-export default app;
+addEventListener("fetch", (event) => {
+	event.respondWith(app.fetch(event.request, event.env, event.ctx));
+});
