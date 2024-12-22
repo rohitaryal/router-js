@@ -12,4 +12,8 @@ app.get("/", (req, res, env, ctx) => {
         "message": "Request recieved"
     });
 });
+
+addEventListener("fetch", (event) => {
+	event.respondWith(app.fetch(event.request, event.env, event.ctx));
+});
 ```
