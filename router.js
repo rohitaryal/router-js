@@ -126,6 +126,14 @@ class RouterResponse {
 			},
 		});
 	}
+	
+	redirect(url, status = 301) {
+		if(typeof url != 'string') {
+			throw new Error("URL must be of type string");
+		}
+
+		return Response.redirect(url, status);
+	}
 }
 
 class RouterRequest {
