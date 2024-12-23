@@ -14,6 +14,6 @@ app.get("/", (req, res, env, ctx) => {
 });
 
 addEventListener("fetch", (event) => {
-	event.respondWith(app.fetch(event.request, event.env, event.ctx));
+    event.respondWith(app.fetch(event.request, event.env, event.ctx));
 });
 ```
