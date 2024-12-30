@@ -7,7 +7,7 @@ import Router from "./router";
 
 const app = new Router();
 
-app.get("/", (req, res, env, ctx) => {
+app.get("/", (req, res) => {
     return res.json({
         "message": "Request recieved"
     });
