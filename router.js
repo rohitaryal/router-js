@@ -56,12 +56,12 @@ export default class Router {
 		});
 	}
 
-	async fetch(request, env, ctx) {
+	async fetch(request) {
 		let { pathname } = new URL(request.url);
 
 		for (let route of this.routes) {
 			if (route.url === pathname && route.method === request.method) {
-				return route.callback(new RouterRequest(request), new RouterResponse(), env, ctx);
+				return route.callback(new RouterRequest(request), new RouterResponse());
 			}
 		}
 
