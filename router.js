@@ -56,12 +56,12 @@ export default class Router {
 		});
 	}
 
-	async fetch(request) {
+	async fetch(request, env, ctx) {
 		let { pathname } = new URL(request.url);
 
 		for (let route of this.routes) {
 			if (route.url === pathname && route.method === request.method) {
-				return route.callback(new RouterRequest(request), new RouterResponse());
+				return route.callback(new RouterRequest(request), new RouterResponse(), env, ctx);
 			}
 		}
 
@@ -125,14 +125,6 @@ class RouterResponse {
 				"Content-Type": "text/html",
 			},
 		});
-	}
-	
-	redirect(url, status = 301) {
-		if(typeof url != 'string') {
-			throw new Error("URL must be of type string");
-		}
-
-		return Response.redirect(url, status);
 	}
 }
 
