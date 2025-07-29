@@ -86,9 +86,12 @@ export default class Router {
 				}
 			}
 
-			// Find and execute route
+			// Find and execute route (with parameter matching)
 			for (let route of this.routes) {
-				if (route.url === pathname && route.method === request.method) {
+				const match = this._matchRoute(route.url, pathname);
+				if (match && route.method === request.method) {
+					// Add matched parameters to request
+					req.params = match.params;
 					try {
 						return await route.callback(req, res, env, ctx);
 					} catch (error) {
@@ -104,6 +107,30 @@ export default class Router {
 			console.error('Router fetch error:', error);
 			return this._errorResponse(500, 'Internal Server Error', 'Failed to process request');
 		}
+	}
+
+	_matchRoute(pattern, pathname) {
+		// Convert route pattern to regex (e.g., /users/:id -> /users/([^/]+))
+		const paramNames = [];
+		const regexPattern = pattern.replace(/:([^/]+)/g, (match, paramName) => {
+			paramNames.push(paramName);
+			return '([^/]+)';
+		});
+
+		const regex = new RegExp('^' + regexPattern + '$');
+		const match = pathname.match(regex);
+
+		if (!match) {
+			return null;
+		}
+
+		// Extract parameters
+		const params = {};
+		for (let i = 0; i < paramNames.length; i++) {
+			params[paramNames[i]] = match[i + 1];
+		}
+
+		return { params };
 	}
 
 	_errorResponse(status, statusText, message = null) {
@@ -278,7 +305,12 @@ class RouterRequest {
 
 	async text() {
 		try {
-			return await this.request.text();
+			const text = await this.request.text();
+			// Basic size limit check (1MB)
+			if (text.length > 1024 * 1024) {
+				throw new Error('Request body too large (max 1MB)');
+			}
+			return text;
 		} catch (error) {
 			console.error('Failed to parse request as text:', error);
 			throw new Error('Failed to parse request body as text: ' + error.message);
@@ -287,13 +319,16 @@ class RouterRequest {
 
 	async json() {
 		try {
-			const text = await this.request.text();
+			const text = await this.text(); // This will apply size limits
 			if (!text.trim()) {
 				throw new Error('Empty request body');
 			}
 			return JSON.parse(text);
 		} catch (error) {
 			console.error('Failed to parse request as JSON:', error);
+			if (error.message.includes('JSON')) {
+				throw new Error('Invalid JSON format: ' + error.message);
+			}
 			throw new Error('Failed to parse request body as JSON: ' + error.message);
 		}
 	}

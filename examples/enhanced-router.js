@@ -43,23 +43,34 @@ app.post("/users", async (req, res) => {
 
 app.put("/users/:id", (req, res) => {
     return res.json({
-        message: `Updated user ${req.query.id || 'unknown'}`,
-        timestamp: req.timestamp
+        message: `Updated user ${req.params.id}`,
+        timestamp: req.timestamp,
+        query: req.query
     });
 });
 
 app.delete("/users/:id", (req, res) => {
     return res.json({
-        message: `Deleted user ${req.query.id || 'unknown'}`,
+        message: `Deleted user ${req.params.id}`,
         timestamp: req.timestamp
     });
 });
 
-app.patch("/users/:id", (req, res) => {
-    return res.json({
-        message: `Patched user ${req.query.id || 'unknown'}`,
-        timestamp: req.timestamp
-    });
+app.patch("/users/:id", async (req, res) => {
+    try {
+        const updateData = await req.json();
+        return res.json({
+            message: `Patched user ${req.params.id}`,
+            data: updateData,
+            timestamp: req.timestamp
+        });
+    } catch (error) {
+        res.writeHead(400, 'Bad Request');
+        return res.json({
+            error: "Invalid JSON data",
+            message: error.message
+        });
+    }
 });
 
 app.options("/api", (req, res) => {
@@ -112,6 +123,24 @@ app.post("/upload", async (req, res) => {
             message: error.message
         });
     }
+});
+
+// Route parameters examples
+app.get("/api/posts/:postId/comments/:commentId", (req, res) => {
+    return res.json({
+        message: "Nested route parameters",
+        postId: req.params.postId,
+        commentId: req.params.commentId,
+        query: req.query
+    });
+});
+
+app.get("/profile/:username", (req, res) => {
+    return res.json({
+        profile: req.params.username,
+        isPublic: req.query.public === 'true',
+        timestamp: req.timestamp
+    });
 });
 
 addEventListener("fetch", (event) => {
